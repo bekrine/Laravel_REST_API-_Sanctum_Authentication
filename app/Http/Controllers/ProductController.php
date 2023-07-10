@@ -12,9 +12,17 @@ class ProductController extends Controller
      */
     public function index()
     {
-    return Product::all();
+    $products=Product::all();
+
+    return view('page.AllProducts')->with(['products'=> $products]);
     }
 
+
+    public function infinitScroll(){
+        $products = Product::paginate(10);
+        return view('page.infinitScrollProducts', compact('products'));
+    }
+    
     /**
      * Store a newly created resource in storage.
      */
@@ -27,15 +35,15 @@ class ProductController extends Controller
         ]);
         Product::create($request->all());
     }
-
+    
     /**
      * Display the specified resource.
      */
     public function show(string $id)
     {
         return Product::find($id);
-     }
-
+    }
+    
     /**
      * Update the specified resource in storage.
      */
@@ -45,7 +53,33 @@ class ProductController extends Controller
         $product->update($request->all());
         return $product;
     }
+    
+    public function search(Request $request)
+    {
+        if($request->ajax()){
+ 
+            $data=Product::where('name','like','%'.$request->search.'%')->get();
+ 
+            $output='';
+            if(count($data)>0){
+            
 
+                $output='<div name="products" class="searchselect">
+                ';
+                    foreach($data as $product){
+                        $output.='<div class="result" value='.$product->name.'>
+                        '.$product->name.'
+                        </div>';
+                    }
+                    $output.='</div>';
+            }
+            else{
+                $output .='No results';
+            }
+            return $output;
+        }
+    }
+    
     /**
      * Remove the specified resource from storage.
      */
@@ -57,9 +91,5 @@ class ProductController extends Controller
     /**
      * search for product
      */
-    public function search(string $name)
-    {
-        return Product::where('name','like','%'.$name.'%')->get();
-
-    }
+   
 }
